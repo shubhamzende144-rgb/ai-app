@@ -1,53 +1,404 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>AI Assistant</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f4f4f4;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .chat-box {
-      background: white;
-      width: 400px;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background: black;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    pre {
-      margin-top: 15px;
-      background: #eee;
-      padding: 10px;
-      min-height: 60px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Interface</title>
+    <style>
+        /* --- Reset & Base --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #1f1f1f;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Layout Containers --- */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 900px; /* Limits width on large screens for readability */
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* --- Header --- */
+        header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #ffffff;
+            z-index: 10;
+        }
+
+        .model-selector {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #444746;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .model-selector:hover {
+            background-color: #f0f4f9;
+            border-radius: 8px;
+            padding: 4px 8px;
+            margin: -4px -8px; /* Offset padding to prevent jump */
+        }
+
+        /* --- Chat History Area --- */
+        #chat-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 20px 40px 20px; /* Extra bottom padding for scroll space */
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            scroll-behavior: smooth;
+        }
+
+        /* Hide scrollbar for cleaner look (optional) */
+        #chat-history::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-history::-webkit-scrollbar-thumb {
+            background-color: #e0e0e0;
+            border-radius: 4px;
+        }
+
+        /* --- Message Bubbles --- */
+        .message {
+            display: flex;
+            gap: 16px;
+            max-width: 100%;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.ai {
+            justify-content: flex-start;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ai .avatar {
+            background: linear-gradient(135deg, #4285f4, #d96570); /* Gemini-like gradient */
+            color: white;
+            font-size: 14px;
+        }
+
+        .user .avatar {
+            display: none; /* Often hidden for user in modern UIs, or use initials */
+        }
+
+        .bubble {
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 1rem;
+            line-height: 1.5;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user .bubble {
+            background-color: #f0f4f9; /* Light gray pill */
+            color: #1f1f1f;
+            border-bottom-right-radius: 4px; /* Subtle visual cue */
+        }
+
+        .ai .bubble {
+            background-color: transparent;
+            color: #1f1f1f;
+            padding-left: 0; /* Align text with avatar top */
+            padding-top: 4px;
+        }
+
+        /* --- Input Area --- */
+        .input-area-wrapper {
+            position: sticky;
+            bottom: 0;
+            background: #ffffff;
+            padding: 20px;
+            width: 100%;
+        }
+
+        /* Gradient fade at top of input area */
+        .input-area-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, #ffffff);
+            pointer-events: none;
+        }
+
+        .input-container {
+            background-color: #f0f4f9;
+            border-radius: 32px; /* Pill shape */
+            padding: 8px 8px 8px 24px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .input-container:focus-within {
+            background-color: #ffffff;
+            border-color: #dcdcdc;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            outline: none;
+            color: #1f1f1f;
+            padding: 8px 0;
+        }
+
+        input::placeholder {
+            color: #8e8e8e;
+        }
+
+        .send-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            color: #444746;
+        }
+
+        .send-btn:hover {
+            background-color: #e1e5ea;
+            color: #1f1f1f;
+        }
+
+        /* SVG Icon styling */
+        .send-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* --- Loading Animation --- */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 10px 0;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            background-color: #444746;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Mobile Responsive --- */
+        @media (max-width: 600px) {
+            .bubble {
+                max-width: 90%;
+            }
+            .main-container {
+                width: 100%;
+            }
+            header {
+                padding: 15px;
+            }
+            #chat-history {
+                padding: 10px 15px;
+            }
+            .input-area-wrapper {
+                padding: 10px 15px 20px 15px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <div class="chat-box">
-    <h3>AI Chat</h3>
-    <input id="msg" placeholder="Type your message..." />
-    <button onclick="send()">Send</button>
-    <pre id="out"></pre>
-  </div>
+    <div class="main-container">
+        <header>
+            <div class="model-selector">
+                Gemini Advanced <span style="font-size: 0.8em;">▼</span>
+            </div>
+            </header>
 
-  <script src="script.js"></script>
+        <div id="chat-history">
+            
+            <div class="message ai">
+                <div class="avatar">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
+                        <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/>
+                    </svg>
+                </div>
+                <div class="bubble">
+                    Hello! I'm Gemini. How can I help you today?
+                </div>
+            </div>
+
+            <div class="message user">
+                <div class="bubble">
+                    Write a short poem about coding.
+                </div>
+            </div>
+
+            <div class="message ai">
+                <div class="avatar">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
+                        <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/>
+                    </svg>
+                </div>
+                <div class="bubble">
+                    In syntax deep where logic flows,<br>
+                    A digital garden quietly grows.<br>
+                    With loops and variables, strictly defined,<br>
+                    We weave the fabric of the modern mind.
+                </div>
+            </div>
+
+        </div>
+
+        <div class="input-area-wrapper">
+            <div class="input-container">
+                <input type="text" id="user-input" placeholder="Enter a prompt here" autocomplete="off" onkeydown="handleEnter(event)">
+                <button class="send-btn" onclick="send()">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div style="text-align: center; font-size: 12px; color: #8e8e8e; margin-top: 10px;">
+                Gemini may display inaccurate info, including about people, so double-check its responses.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatHistory = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                send();
+            }
+        }
+
+        function send() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // 1. Add User Message
+            addMessage(text, 'user');
+            userInput.value = '';
+
+            // 2. Simulate AI "Thinking"
+            showTypingIndicator();
+
+            // 3. Mock Response (Replace this logic with actual API call)
+            setTimeout(() => {
+                removeTypingIndicator();
+                addMessage("This is a simulated response. In a real implementation, you would connect this to your backend API.", 'ai');
+            }, 1500);
+        }
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+
+            let contentHTML = '';
+            
+            if (sender === 'ai') {
+                contentHTML = `
+                    <div class="avatar">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
+                             <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/>
+                        </svg>
+                    </div>
+                    <div class="bubble">${text}</div>
+                `;
+            } else {
+                contentHTML = `<div class="bubble">${text}</div>`;
+            }
+
+            messageDiv.innerHTML = contentHTML;
+            chatHistory.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.classList.add('message', 'ai');
+            typingDiv.innerHTML = `
+                <div class="avatar">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
+                         <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z"/>
+                    </svg>
+                </div>
+                <div class="bubble">
+                    <div class="typing-indicator">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            `;
+            chatHistory.appendChild(typingDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        }
+    </script>
 </body>
 </html>
