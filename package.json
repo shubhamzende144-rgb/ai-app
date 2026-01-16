@@ -21,5 +21,6 @@
   "dependencies": {
     "firebase": "^12.8.0",
     "openai": "^6.16.0"
-  }
+  },
+  "devDependencies": {}
 }
