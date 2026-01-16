@@ -8,7 +8,14 @@ exports.handler = async function (event) {
     if (!message) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "No message provided" })
+        body: JSON.stringify({ reply: "No message received" })
+      };
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ reply: "OpenAI API key missing" })
       };
     }
 
@@ -30,7 +37,9 @@ exports.handler = async function (event) {
   } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: err.message })
+      body: JSON.stringify({
+        reply: "Backend error: " + err.message
+      })
     };
   }
 };
