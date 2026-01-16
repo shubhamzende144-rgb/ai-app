@@ -1,4 +1,53 @@
-<input id="msg" placeholder="Type message">
-<button onclick="send()">Send</button>
-<pre id="out"></pre>
-<script src="script.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Assistant</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .chat-box {
+      background: white;
+      width: 400px;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: black;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    pre {
+      margin-top: 15px;
+      background: #eee;
+      padding: 10px;
+      min-height: 60px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="chat-box">
+    <h3>AI Chat</h3>
+    <input id="msg" placeholder="Type your message..." />
+    <button onclick="send()">Send</button>
+    <pre id="out"></pre>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
