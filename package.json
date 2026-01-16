@@ -1,0 +1,25 @@
+{
+  "name": "ai-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shubhamzende144-rgb/ai-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/shubhamzende144-rgb/ai-app/issues"
+  },
+  "homepage": "https://github.com/shubhamzende144-rgb/ai-app#readme",
+  "dependencies": {
+    "firebase": "^12.8.0",
+    "openai": "^6.16.0"
+  }
+}
